@@ -10,60 +10,57 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
+import apiClient from "@/app/lib/apiClient"
+import { useAuth } from "@/app/context/AuthContext"
+
 export default function LoginPage() {
+  const { checkLoginStatus } = useAuth()
+
   const [email, setEmail] = useState("test@example.com")
   const [password, setPassword] = useState("password123")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("") // UI에 에러 메시지를 표시하기 위한 상태
   const router = useRouter()
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("") // 에러 메시지 초기화
 
     try {
-      // 로그인 로직 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // 실제 로그인 API 호출
+      await apiClient.post('/auth/login', { email, password })
 
-      // 로그인 성공 처리
-      console.log("로그인 성공!")
+      // 로그인 성공 시, AuthContext의 상태를 갱신하도록 요청
+      await checkLoginStatus()
 
       // 홈페이지로 리다이렉트
       router.push("/")
-    } catch (error) {
-      console.error("로그인 오류:", error)
-      alert("로그인에 실패했습니다. 다시 시도해주세요.")
+
+    } catch (err) {
+      console.error("로그인 오류:", err)
+      // 백엔드에서 받은 에러 메시지를 사용하거나, 일반적인 메시지를 설정
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message)
+      } else {
+        setError("이메일 또는 비밀번호가 올바르지 않습니다.")
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleSocialLogin = async (provider) => {
-    setIsLoading(true)
-
-    try {
-      // 소셜 로그인 로직 시뮬레이션
-      console.log(`${provider} 로그인 시도`)
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // 로그인 성공 처리
-      console.log(`${provider} 로그인 성공!`)
-
-      // 홈페이지로 리다이렉트
-      router.push("/")
-    } catch (error) {
-      console.error("소셜 로그인 오류:", error)
-      alert("소셜 로그인에 실패했습니다. 다시 시도해주세요.")
-    } finally {
-      setIsLoading(false)
-    }
+    // 실제 OAuth2.0 플로우는 백엔드 엔드포인트로 리다이렉트 시키는 방식으로 동작
+    // 예: window.location.href = `http://localhost:8080/api/oauth2/authorization/${provider}`
+    alert(`${provider} 소셜 로그인은 현재 준비 중입니다.`)
   }
 
+  // 5. 빠른 로그인 함수를 실제 로그인 로직과 연결
   const handleQuickLogin = () => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      router.push("/")
-    }, 500)
+    // 미리 정의된 테스트 계정 정보로 로그인 폼을 채우고, handleLogin 함수를 호출할 수 있음
+    // 여기서는 간단히 handleLogin을 직접 트리거합니다.
+    handleLogin({ preventDefault: () => {} }) // 이벤트 객체 모의
   }
 
   return (
@@ -97,37 +94,46 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
+              {/* 이메일 입력 */}
               <div className="space-y-2">
                 <Label htmlFor="email">이메일</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="이메일을 입력하세요"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
+                      id="email"
+                      type="email"
+                      placeholder="이메일을 입력하세요"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
                   />
                 </div>
               </div>
 
+              {/* 비밀번호 입력 */}
               <div className="space-y-2">
                 <Label htmlFor="password">비밀번호</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
-                    id="password"
-                    type="password"
-                    placeholder="비밀번호를 입력하세요"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                    required
+                      id="password"
+                      type="password"
+                      placeholder="비밀번호를 입력하세요"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10"
+                      required
                   />
                 </div>
               </div>
+
+              {/* 6. 에러 메시지 표시 */}
+              {error && (
+                  <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+                    {error}
+                  </div>
+              )}
 
               <div className="flex items-center justify-between text-sm">
                 <Link href="/forgot-password" className="text-blue-600 hover:underline">
@@ -140,19 +146,19 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/* 빠른 로그인 버튼 추가 */}
+            {/* 빠른 로그인 버튼 (기능 연결됨) */}
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800 text-center mb-2">
                 <strong>테스트용 빠른 로그인</strong>
               </p>
               <Button
-                variant="outline"
-                size="sm"
-                className="w-full bg-blue-100 hover:bg-blue-200"
-                onClick={handleQuickLogin}
-                disabled={isLoading}
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-blue-100 hover:bg-blue-200"
+                  onClick={handleQuickLogin}
+                  disabled={isLoading}
               >
-                {isLoading ? "로그인 중..." : "바로 로그인하기"}
+                바로 로그인하기
               </Button>
             </div>
 

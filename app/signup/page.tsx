@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Mail, Lock, User, Chrome, Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
+import apiClient from "@/app/lib/apiClient" // 1. API 클라이언트 임포트
+
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -95,33 +97,42 @@ export default function SignupPage() {
     setIsLoading(true)
 
     try {
-      // 회원가입 로직
-      console.log("회원가입 데이터:", {
-        ...formData,
-        agreements,
-      })
+      // 2. API 명세에 맞게 요청 데이터 생성
+      const signupData = {
+        email: formData.email,
+        password: formData.password,
+        nickname: formData.name, // 'name' 필드를 'nickname'으로 매핑
+      }
 
-      // 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      // 3. 실제 API 호출
+      await apiClient.post('/auth/signup', signupData)
 
-      // 성공 시 로그인 페이지로 리다이렉트
-      alert("회원가입이 완료되었습니다! 로그인해주세요.")
+      // 성공 시
+      alert("회원가입이 성공적으로 완료되었습니다! 로그인 페이지로 이동합니다.")
       window.location.href = "/login"
+
     } catch (error) {
+      // 4. API 에러 처리
       console.error("회원가입 오류:", error)
-      alert("회원가입 중 오류가 발생했습니다. 다시 시도해주세요.")
+      if (error.response && error.response.data && error.response.data.message) {
+        // 백엔드에서 보낸 구체적인 에러 메시지를 사용자에게 보여줍니다.
+        // 예: "이미 사용 중인 이메일입니다."
+        alert(`회원가입 실패: ${error.response.data.message}`)
+      } else {
+        // 네트워크 에러 등 기타 문제
+        alert("회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleSocialSignup = (provider) => {
-    setIsLoading(true)
-    // 소셜 회원가입 로직
-    setTimeout(() => {
-      setIsLoading(false)
-      window.location.href = "/"
-    }, 1000)
+    // 소셜 로그인은 별도의 백엔드 API 연동이 필요합니다. (예: /oauth2/authorization/google)
+    // 현재는 플레이스홀더로 유지합니다.
+    console.log(`${provider} 소셜 회원가입 시도`)
+    alert("소셜 회원가입 기능은 현재 준비 중입니다.")
+    // window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/${provider}`;
   }
 
   const allRequiredAgreed = agreements.terms && agreements.privacy

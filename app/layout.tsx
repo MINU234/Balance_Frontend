@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { AuthProvider } from '@/app/context/AuthContext';
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -13,8 +14,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
+      <html lang="ko">
+      <body>
+      {/* 2. AuthProvider로 children을 감싸줍니다. */}
+      <AuthProvider>
+        {children}
+      </AuthProvider>
+      </body>
+      </html>
   )
 }
