@@ -1,26 +1,29 @@
-import type { Metadata } from 'next'
-import { AuthProvider } from '@/app/context/AuthContext';
-import './globals.css'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
+// import { Toaster } from "@/components/ui/sonner"; // sonner 설치 후 사용
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
-}
+    title: "Balance Game",
+    description: "Create and share your own balance game collections.",
+};
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode
+    children: React.ReactNode;
 }>) {
-  return (
-      <html lang="ko">
-      <body>
-      {/* 2. AuthProvider로 children을 감싸줍니다. */}
-      <AuthProvider>
-        {children}
-      </AuthProvider>
-      </body>
-      </html>
-  )
+    return (
+        <html lang="ko">
+        <body className={inter.className}>
+            <AuthProvider>
+                {children}
+                {/* <Toaster /> sonner 설치 후 사용 */}
+            </AuthProvider>
+        </body>
+        </html>
+    );
 }
