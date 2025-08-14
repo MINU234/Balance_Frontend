@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, X, Save, Eye, ImageIcon } from "lucide-react"
+import { ArrowLeft, X, Save, Eye, ImageIcon, Sparkles, Check } from "lucide-react"
 import { useState, useRef } from "react"
 import Link from "next/link"
+import apiClient from "@/lib/simpleApiClient"
 
 export default function CreateQuestionPage() {
   const [questionData, setQuestionData] = useState({
@@ -33,21 +34,21 @@ export default function CreateQuestionPage() {
 
   const popularKeywords = ["#연애", "#음식", "#가치관", "#일상", "#직장", "#여행", "#취미", "#인생", "#친구", "#가족"]
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: string, value: string) => {
     setQuestionData((prev) => ({
       ...prev,
       [field]: value,
     }))
   }
 
-  const handleKeywordClick = (keyword) => {
+  const handleKeywordClick = (keyword: string) => {
     setQuestionData((prev) => ({
       ...prev,
       keyword: keyword,
     }))
   }
 
-  const handleImageUpload = async (file, option) => {
+  const handleImageUpload = async (file: File, option: 'A' | 'B') => {
     if (!file) return
 
     // 파일 크기 체크 (5MB 제한)
@@ -79,13 +80,13 @@ export default function CreateQuestionPage() {
       reader.onload = (e) => {
         setPreviewImages((prev) => ({
           ...prev,
-          [option]: e.target.result,
+          [option]: e.target?.result || '',
         }))
       }
       reader.readAsDataURL(file)
 
       // 실제 URL 저장
-      const fieldName = option === "optionA" ? "optionAImageUrl" : "optionBImageUrl"
+      const fieldName = option === "A" ? "optionAImageUrl" : "optionBImageUrl"
       handleInputChange(fieldName, mockImageUrl)
     } catch (error) {
       console.error("이미지 업로드 실패:", error)
@@ -95,8 +96,8 @@ export default function CreateQuestionPage() {
     }
   }
 
-  const removeImage = (option) => {
-    const fieldName = option === "optionA" ? "optionAImageUrl" : "optionBImageUrl"
+  const removeImage = (option: 'A' | 'B') => {
+    const fieldName = option === "A" ? "optionAImageUrl" : "optionBImageUrl"
     handleInputChange(fieldName, "")
     setPreviewImages((prev) => ({
       ...prev,
@@ -130,22 +131,19 @@ export default function CreateQuestionPage() {
     setIsLoading(true)
 
     try {
-      // API 요청
-      const response = await fetch("/api/questions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(questionData),
+      // API 요청 (실제 API 사용)
+      await apiClient.createQuestion({
+        text: questionData.text,
+        optionAText: questionData.optionAText,
+        optionBText: questionData.optionBText,
+        keyword: questionData.keyword,
+        optionAImageUrl: questionData.optionAImageUrl,
+        optionBImageUrl: questionData.optionBImageUrl
       })
-
-      if (response.ok) {
-        alert("질문이 성공적으로 등록되었습니다!")
-        // 마이페이지로 리다이렉트
-        window.location.href = "/my-page"
-      } else {
-        throw new Error("질문 등록 실패")
-      }
+      
+      alert("질문이 성공적으로 등록되었습니다!")
+      // 마이페이지로 리다이렉트
+      window.location.href = "/my-page"
     } catch (error) {
       console.error("질문 등록 오류:", error)
       alert("질문 등록에 실패했습니다. 다시 시도해주세요.")
@@ -155,9 +153,16 @@ export default function CreateQuestionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+      {/* 배경 장식 요소들 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl float-animation"></div>
+        <div className="absolute top-40 right-20 w-48 h-48 bg-gradient-to-br from-pink-400/20 to-rose-400/20 rounded-full blur-3xl float-animation" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 rounded-full blur-3xl float-animation" style={{ animationDelay: '4s' }}></div>
+      </div>
+      
       {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
+      <header className="bg-white/90 backdrop-blur-md border-b border-white/20 sticky top-0 z-50 shadow-lg shadow-purple-500/10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -167,7 +172,7 @@ export default function CreateQuestionPage() {
                   마이페이지
                 </Link>
               </Button>
-              <h1 className="text-xl font-bold">새 질문 만들기</h1>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-purple-700 bg-clip-text text-transparent">새 질문 만들기</h1>
             </div>
             <div className="flex items-center space-x-2">
               <Button
@@ -181,7 +186,7 @@ export default function CreateQuestionPage() {
               <Button variant="outline" onClick={() => window.history.back()}>
                 취소
               </Button>
-              <Button onClick={handleSubmit} disabled={isLoading}>
+              <Button onClick={handleSubmit} disabled={isLoading} className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 text-white px-6 py-2 rounded-xl hover:from-blue-600 hover:via-purple-700 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
                 <Save className="w-4 h-4 mr-2" />
                 {isLoading ? "저장 중..." : "저장하기"}
               </Button>
@@ -190,7 +195,7 @@ export default function CreateQuestionPage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left: Form */}
           <div className="space-y-6">

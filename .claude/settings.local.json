@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd.exe:*)",
+      "Bash(powershell:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(az:*)",
+      "Bash(where az)",
+      "Bash(winget install:*)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" --version)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" account show)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" group list --query \"[].name\" -o table)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" staticwebapp create --name \"balance-game-frontend\" --resource-group \"MINWOO\" --location \"koreacentral\" --source \"https://github.com/YOUR_USERNAME/balance-game-frontend\" --branch \"main\" --app-location \"/\" --output-location \"out\")",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "C:\\Program Files (x86)\\Microsoft SDKs\\Azure\\CLI2\\wbin 2>\\dev"
+    ]
+  }
+}

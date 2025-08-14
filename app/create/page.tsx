@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Plus, Search, X, GripVertical, Save } from "lucide-react"
+import { ArrowLeft, Plus, Search, X, GripVertical, Save, Sparkles } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
+import apiClient from "@/lib/simpleApiClient"
 
 export default function CreateCollectionPage() {
   const [title, setTitle] = useState("")
@@ -111,9 +112,16 @@ export default function CreateCollectionPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+      {/* 배경 장식 요소들 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl float-animation"></div>
+        <div className="absolute top-40 right-20 w-48 h-48 bg-gradient-to-br from-pink-400/20 to-rose-400/20 rounded-full blur-3xl float-animation" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 rounded-full blur-3xl float-animation" style={{ animationDelay: '4s' }}></div>
+      </div>
+      
       {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
+      <header className="bg-white/90 backdrop-blur-md border-b border-white/20 sticky top-0 z-50 shadow-lg shadow-purple-500/10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -123,13 +131,13 @@ export default function CreateCollectionPage() {
                   마이페이지
                 </Link>
               </Button>
-              <h1 className="text-xl font-bold">새 질문 묶음 만들기</h1>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-purple-700 bg-clip-text text-transparent">새 질문 묶음 만들기</h1>
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" onClick={() => window.history.back()}>
                 취소
               </Button>
-              <Button onClick={handleSave}>
+              <Button onClick={handleSave} className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 text-white px-6 py-2 rounded-xl hover:from-blue-600 hover:via-purple-700 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
                 <Save className="w-4 h-4 mr-2" />
                 저장하기
               </Button>
@@ -138,13 +146,13 @@ export default function CreateCollectionPage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left: Collection Settings */}
           <div className="space-y-6">
-            <Card>
+            <Card className="bg-white/90 backdrop-blur-md shadow-2xl border-0">
               <CardHeader>
-                <CardTitle>기본 정보</CardTitle>
+                <CardTitle className="bg-gradient-to-r from-slate-800 to-purple-700 bg-clip-text text-transparent">기본 정보</CardTitle>
                 <CardDescription>질문 묶음의 기본 정보를 입력하세요</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -180,9 +188,9 @@ export default function CreateCollectionPage() {
             </Card>
 
             {/* Selected Questions */}
-            <Card>
+            <Card className="bg-white/90 backdrop-blur-md shadow-2xl border-0">
               <CardHeader>
-                <CardTitle>선택된 질문 ({selectedQuestions.length}개)</CardTitle>
+                <CardTitle className="bg-gradient-to-r from-slate-800 to-purple-700 bg-clip-text text-transparent">선택된 질문 ({selectedQuestions.length}개)</CardTitle>
                 <CardDescription>질문의 순서를 변경하거나 제거할 수 있습니다</CardDescription>
               </CardHeader>
               <CardContent>
@@ -238,9 +246,9 @@ export default function CreateCollectionPage() {
 
           {/* Right: Question Selection */}
           <div className="space-y-6">
-            <Card>
+            <Card className="bg-white/90 backdrop-blur-md shadow-2xl border-0">
               <CardHeader>
-                <CardTitle>질문 선택</CardTitle>
+                <CardTitle className="bg-gradient-to-r from-slate-800 to-purple-700 bg-clip-text text-transparent">질문 선택</CardTitle>
                 <CardDescription>원하는 질문들을 선택하여 묶음을 만드세요</CardDescription>
               </CardHeader>
               <CardContent>
@@ -325,11 +333,14 @@ export default function CreateCollectionPage() {
             </Card>
 
             {/* Create New Question */}
-            <Card>
-              <CardContent className="p-6 text-center">
-                <h3 className="font-semibold mb-2">원하는 질문이 없나요?</h3>
-                <p className="text-sm text-gray-600 mb-4">새로운 밸런스 게임 질문을 직접 만들어보세요</p>
-                <Button variant="outline" asChild>
+            <Card className="bg-white/90 backdrop-blur-md shadow-2xl border-0">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <Sparkles className="h-8 w-8 text-white"/>
+                </div>
+                <h3 className="text-lg font-bold mb-3 bg-gradient-to-r from-slate-800 to-purple-700 bg-clip-text text-transparent">원하는 질문이 없나요?</h3>
+                <p className="text-slate-600 mb-6">새로운 밸런스 게임 질문을 직접 만들어보세요</p>
+                <Button asChild className="bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:via-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
                   <Link href="/create-question">
                     <Plus className="w-4 h-4 mr-2" />새 질문 만들기
                   </Link>

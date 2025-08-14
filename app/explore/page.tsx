@@ -1,287 +1,310 @@
-"use client"
+'use client';
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Play, Users, Heart, Coffee, Lightbulb, Star, Filter, ArrowLeft } from "lucide-react"
-import { useState } from "react"
-import Link from "next/link"
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Search, 
+  TrendingUp, 
+  Clock, 
+  Users, 
+  Star,
+  Play,
+  ArrowLeft
+} from 'lucide-react';
+import { QuestionBundle } from '@/types/api';
+import apiClient from '@/lib/simpleApiClient';
+import { toast } from '@/hooks/use-toast';
+
+// 유틸리티 함수들
+const formatPlayCount = (count: number): string => {
+  if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+  if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+  return count.toString();
+};
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 1) return '어제';
+  if (diffDays < 7) return `${diffDays}일 전`;
+  if (diffDays < 30) return `${Math.ceil(diffDays / 7)}주 전`;
+  return `${Math.ceil(diffDays / 30)}개월 전`;
+};
+
+const getErrorMessage = (error: any): string => {
+  if (error?.response?.data?.message) {
+    return error.response.data.message;
+  }
+  return error?.message || '알 수 없는 오류가 발생했습니다.';
+};
+
+// 간단한 debounce hook
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 export default function ExplorePage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedKeyword, setSelectedKeyword] = useState("all")
-  const [sortBy, setSortBy] = useState("popular")
+  const [popularBundles, setPopularBundles] = useState<QuestionBundle[]>([]);
+  const [recentBundles, setRecentBundles] = useState<QuestionBundle[]>([]);
+  const [searchResults, setSearchResults] = useState<QuestionBundle[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState({
+    popular: true,
+    recent: true,
+    search: false,
+  });
 
-  const keywords = [
-    { id: "all", name: "전체", icon: Star, count: 546 },
-    { id: "love", name: "연애", icon: Heart, count: 156 },
-    { id: "food", name: "음식", icon: Coffee, count: 89 },
-    { id: "values", name: "가치관", icon: Lightbulb, count: 234 },
-    { id: "daily", name: "일상", icon: Star, count: 67 },
-  ]
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const collections = [
-    {
-      id: 1,
-      title: "연인과 함께하는 밸런스 게임",
-      description: "연인 사이의 가치관과 취향을 알아보는 재미있는 질문들",
-      author: "러브마스터",
-      plays: 1234,
-      questions: 15,
-      keywords: ["연애", "가치관"],
-      isPublic: true,
-      createdAt: "2024-01-15",
-    },
-    {
-      id: 2,
-      title: "친구들과 즐기는 음식 토론",
-      description: "음식에 대한 다양한 선택의 순간들",
-      author: "푸드파이터",
-      plays: 856,
-      questions: 20,
-      keywords: ["음식", "일상"],
-      isPublic: true,
-      createdAt: "2024-01-10",
-    },
-    {
-      id: 3,
-      title: "인생 철학 밸런스 게임",
-      description: "깊이 있는 가치관 질문으로 서로를 더 알아가기",
-      author: "철학자",
-      plays: 567,
-      questions: 12,
-      keywords: ["가치관", "철학"],
-      isPublic: true,
-      createdAt: "2024-01-08",
-    },
-    {
-      id: 4,
-      title: "직장인 고민 밸런스",
-      description: "직장 생활의 다양한 선택 상황들",
-      author: "워커홀릭",
-      plays: 423,
-      questions: 18,
-      keywords: ["직장", "일상"],
-      isPublic: true,
-      createdAt: "2024-01-05",
-    },
-    {
-      id: 5,
-      title: "여행지 선택 게임",
-      description: "여행 관련 재미있는 선택들",
-      author: "여행러버",
-      plays: 789,
-      questions: 14,
-      keywords: ["여행", "일상"],
-      isPublic: true,
-      createdAt: "2024-01-03",
-    },
-    {
-      id: 6,
-      title: "학생 시절 추억 게임",
-      description: "학창시절 경험했을 법한 상황들",
-      author: "추억여행자",
-      plays: 345,
-      questions: 16,
-      keywords: ["추억", "학교"],
-      isPublic: true,
-      createdAt: "2024-01-01",
-    },
-  ]
+  useEffect(() => {
+    loadPopularBundles();
+    loadRecentBundles();
+  }, []);
 
-  const questions = [
-    {
-      id: 1,
-      title: "치킨 vs 피자",
-      description: "평생 둘 중 하나만 먹을 수 있다면?",
-      keywords: ["음식"],
-      author: "푸드파이터",
-      usedCount: 234,
-    },
-    {
-      id: 2,
-      title: "돈 vs 시간",
-      description: "돈이 많지만 시간이 없는 삶 vs 시간은 많지만 돈이 없는 삶",
-      keywords: ["가치관"],
-      author: "철학자",
-      usedCount: 456,
-    },
-    {
-      id: 3,
-      title: "여름 vs 겨울",
-      description: "평생 여름만 있는 곳 vs 평생 겨울만 있는 곳",
-      keywords: ["일상"],
-      author: "날씨맨",
-      usedCount: 123,
-    },
-  ]
+  useEffect(() => {
+    if (debouncedSearchQuery.trim()) {
+      searchBundles(debouncedSearchQuery.trim());
+    } else {
+      setSearchResults([]);
+    }
+  }, [debouncedSearchQuery]);
+
+  const loadPopularBundles = async () => {
+    try {
+      setLoading(prev => ({ ...prev, popular: true }));
+      const response = await apiClient.getPopularBundles(0, 12);
+      setPopularBundles(response.content);
+    } catch (error) {
+      console.error('인기 게임 로드 실패:', error);
+    } finally {
+      setLoading(prev => ({ ...prev, popular: false }));
+    }
+  };
+
+  const loadRecentBundles = async () => {
+    try {
+      setLoading(prev => ({ ...prev, recent: true }));
+      const response = await apiClient.getQuestionBundles(0, 12);
+      setRecentBundles(response.content);
+    } catch (error) {
+      console.error('최신 게임 로드 실패:', error);
+    } finally {
+      setLoading(prev => ({ ...prev, recent: false }));
+    }
+  };
+
+  const searchBundles = async (keyword: string) => {
+    try {
+      setLoading(prev => ({ ...prev, search: true }));
+      const response = await apiClient.getQuestionBundles(0, 12, keyword);
+      setSearchResults(response.content);
+    } catch (error) {
+      console.error('검색 실패:', error);
+    } finally {
+      setLoading(prev => ({ ...prev, search: false }));
+    }
+  };
+
+  const BundleGrid = ({ 
+    bundles, 
+    loading: isLoading, 
+    emptyMessage 
+  }: {
+    bundles: QuestionBundle[];
+    loading: boolean;
+    emptyMessage: string;
+  }) => (
+    <div className="space-y-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {bundles.map((bundle) => (
+          <div key={bundle.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 p-6 border border-slate-100 group">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-slate-800 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                {bundle.title}
+              </h3>
+              <p className="text-slate-600 text-sm line-clamp-2">
+                {bundle.description || '재미있는 밸런스 게임입니다.'}
+              </p>
+            </div>
+            
+            <div className="flex items-center justify-between text-sm text-slate-500 mb-4">
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>{formatPlayCount(bundle.playCount || 0)}명</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>{formatDate(bundle.createdAt)}</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between mb-4">
+              <span className="bg-slate-100 px-2 py-1 rounded-lg text-xs font-medium">
+                {bundle.questionCount}문제
+              </span>
+              <span className="text-xs text-slate-500">
+                by {bundle.creator.nickname}
+              </span>
+            </div>
+            
+            {bundle.keywords && (
+              <div className="flex flex-wrap gap-1 mb-4">
+                {bundle.keywords.split(',').slice(0, 3).map((keyword, idx) => (
+                  <span key={idx} className="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-xs font-medium">
+                    #{keyword.trim()}
+                  </span>
+                ))}
+              </div>
+            )}
+            
+            <Link 
+              href={`/play/${bundle.id}`}
+              className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
+            >
+              <Play className="inline h-4 w-4 mr-2" />
+              게임 시작
+            </Link>
+          </div>
+        ))}
+        
+        {/* 로딩 스켈레톤 */}
+        {isLoading && Array.from({ length: 6 }).map((_, i) => (
+          <div key={`skeleton-${i}`} className="bg-white rounded-2xl shadow-lg p-6 animate-pulse">
+            <div className="h-6 bg-slate-200 rounded-lg mb-3"></div>
+            <div className="h-4 bg-slate-200 rounded-lg mb-4"></div>
+            <div className="flex justify-between mb-4">
+              <div className="h-4 bg-slate-200 rounded-lg w-20"></div>
+              <div className="h-4 bg-slate-200 rounded-lg w-16"></div>
+            </div>
+            <div className="h-10 bg-slate-200 rounded-lg"></div>
+          </div>
+        ))}
+      </div>
+      
+      {/* 빈 상태 */}
+      {bundles.length === 0 && !isLoading && (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="h-8 w-8 text-slate-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-800 mb-2">게임을 찾을 수 없습니다</h3>
+          <p className="text-slate-600">{emptyMessage}</p>
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* 네비게이션 */}
+      <nav className="bg-white/95 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  홈으로
-                </Link>
-              </Button>
-              <h1 className="text-xl font-bold">탐색하기</h1>
+              <Link href="/" className="flex items-center text-slate-600 hover:text-slate-800 transition-colors">
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                홈으로
+              </Link>
+              <h1 className="text-xl font-bold text-slate-800">게임 둘러보기</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" asChild>
-                <Link href="/login">로그인</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/signup">회원가입</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
-        {/* Search and Filter */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="질문 묶음이나 질문을 검색하세요..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="popular">인기순</SelectItem>
-                  <SelectItem value="recent">최신순</SelectItem>
-                  <SelectItem value="plays">플레이순</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline">
-                <Filter className="w-4 h-4 mr-2" />
-                필터
-              </Button>
-            </div>
-          </div>
-
-          {/* Keywords */}
-          <div className="flex flex-wrap gap-2">
-            {keywords.map((keyword) => (
-              <Button
-                key={keyword.id}
-                variant={selectedKeyword === keyword.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedKeyword(keyword.id)}
-                className="flex items-center space-x-1"
+              <Link href="/login" className="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                로그인
+              </Link>
+              <Link 
+                href="/signup" 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
               >
-                <keyword.icon className="w-3 h-3" />
-                <span>#{keyword.name}</span>
-                <span className="text-xs opacity-70">({keyword.count})</span>
-              </Button>
-            ))}
+                회원가입
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 헤더 섹션 */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">게임 둘러보기</h1>
+          <p className="text-slate-600">다양한 밸런스 게임을 찾아보세요!</p>
+        </div>
+        
+        {/* 검색바 */}
+        <div className="max-w-md mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <input
+              placeholder="게임 제목이나 키워드로 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+            />
+            {loading.search && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Content Tabs */}
-        <Tabs defaultValue="collections" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="collections">질문 묶음</TabsTrigger>
-            <TabsTrigger value="questions">개별 질문</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="collections">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {collections.map((collection) => (
-                <Card key={collection.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg mb-2">{collection.title}</CardTitle>
-                        <CardDescription className="text-sm">{collection.description}</CardDescription>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {collection.keywords.map((keyword) => (
-                        <Badge key={keyword} variant="secondary" className="text-xs">
-                          #{keyword}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <span>by {collection.author}</span>
-                      <div className="flex items-center space-x-4">
-                        <span className="flex items-center">
-                          <Play className="w-4 h-4 mr-1" />
-                          {collection.plays}
-                        </span>
-                        <span className="flex items-center">
-                          <Users className="w-4 h-4 mr-1" />
-                          {collection.questions}문항
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button className="flex-1" asChild>
-                        <Link href={`/play/${collection.id}`}>
-                          <Play className="w-4 h-4 mr-2" />
-                          플레이하기
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        복제
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        {/* 콘텐츠 */}
+        {searchQuery.trim() ? (
+          // 검색 결과
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-slate-800">
+              '{searchQuery}' 검색 결과 ({searchResults.length}개)
+            </h2>
+            <BundleGrid
+              bundles={searchResults}
+              loading={loading.search}
+              emptyMessage="검색 조건에 맞는 게임이 없습니다. 다른 키워드로 시도해보세요."
+            />
+          </div>
+        ) : (
+          // 기본 탭 뷰
+          <div className="space-y-6">
+            <div className="border-b border-slate-200">
+              <nav className="-mb-px flex space-x-8">
+                <button className="border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  인기 게임
+                </button>
+                <button className="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  최신 게임
+                </button>
+              </nav>
             </div>
-          </TabsContent>
-
-          <TabsContent value="questions">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {questions.map((question) => (
-                <Card key={question.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{question.title}</CardTitle>
-                    <CardDescription>{question.description}</CardDescription>
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {question.keywords.map((keyword) => (
-                        <Badge key={keyword} variant="secondary" className="text-xs">
-                          #{keyword}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <span>by {question.author}</span>
-                      <span>{question.usedCount}번 사용됨</span>
-                    </div>
-                    <Button className="w-full bg-transparent" variant="outline">
-                      내 묶음에 추가
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+            
+            <BundleGrid
+              bundles={popularBundles}
+              loading={loading.popular}
+              emptyMessage="아직 인기 게임이 없습니다."
+            />
+          </div>
+        )}
+      </main>
     </div>
-  )
+  );
 }

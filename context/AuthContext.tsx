@@ -1,142 +1,148 @@
-"use client";
+'use client';
 
-import React, {
-    createContext,
-    useContext,
-    useState,
-    useEffect,
-    ReactNode,
-} from "react";
-import apiClient, { setAccessToken } from "@/lib/apiClient";
-import { toast } from "@/lib/toast";
-
-interface User {
-    id: number;
-    email: string;
-    nickname: string;
-    role?: 'USER' | 'ADMIN';
-}
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { User } from '@/types/api';
+import apiClient from '@/lib/apiClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
-    isLoggedIn: boolean;
-    user: User | null;
-    isLoading: boolean;
-    checkLoginStatus: () => Promise<void>;
-    login: (email: string, password: string) => Promise<boolean>;
-    logout: () => Promise<void>;
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, nickname: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-    const checkLoginStatus = async () => {
-        setIsLoading(true);
-        try {
-            const res = await apiClient.get("/auth/me");
-            if (res.status === 200) {
-                setIsLoggedIn(true);
-                setUser(res.data);
-            } else {
-                setIsLoggedIn(false);
-                setUser(null);
-            }
-        } catch (error) {
-            console.log('로그인 상태 확인 실패 (정상적인 상황일 수 있음)');
-            setIsLoggedIn(false);
-            setUser(null);
-        } finally {
-            setIsLoading(false);
+  // 로그인 상태 확인 (쿠키 기반)
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        // 쿠키에 세션이 있는지 확인 (서버에서 httpOnly 쿠키로 관리)
+        console.log('🔍 Checking authentication status...');
+        const response = await apiClient.getCurrentUser();
+        if (response.success && response.data) {
+          setUser(response.data);
+        } else {
+          setUser(null);
         }
+        console.log('✅ User authenticated:', userData);
+      } catch (error: any) {
+        console.log('ℹ️ User not authenticated or session expired');
+        // 인증되지 않은 상태는 정상적인 상황
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const login = async (email: string, password: string): Promise<boolean> => {
-        try {
-            console.log('로그인 시도:', { email });
-            
-            const res = await apiClient.post("/auth/login", { 
-                email, 
-                password 
-            });
-            
-            console.log('로그인 응답:', res.data);
-            
-            // 토큰이 응답에 있는 경우
-            if (res.data.accessToken) {
-                setAccessToken(res.data.accessToken);
-                await checkLoginStatus();
-                toast.success("로그인되었습니다");
-                return true;
-            }
-            
-            // 토큰이 없어도 성공 응답인 경우 (쿠키 기반 인증)
-            if (res.status === 200) {
-                await checkLoginStatus();
-                toast.success("로그인되었습니다");
-                return true;
-            }
-            
-            return false;
-        } catch (error: any) {
-            console.error('로그인 에러 상세:', error);
-            
-            // 에러 메시지 파싱
-            let message = "로그인에 실패했습니다";
-            
-            if (error.response) {
-                // 서버 응답이 있는 경우
-                if (error.response.status === 400) {
-                    message = "이메일 또는 비밀번호를 확인해주세요";
-                } else if (error.response.status === 401) {
-                    message = "인증에 실패했습니다. 이메일과 비밀번호를 확인해주세요";
-                } else if (error.response.status === 404) {
-                    message = "사용자를 찾을 수 없습니다";
-                } else if (error.response.data?.message) {
-                    message = error.response.data.message;
-                }
-            } else if (error.request) {
-                // 요청은 보냈지만 응답이 없는 경우
-                message = "서버에 연결할 수 없습니다. 네트워크를 확인해주세요";
-            }
-            
-            toast.error(message);
-            return false;
+    initializeAuth();
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      const loginResponse = await apiClient.login({ email, password });
+      
+      if (loginResponse.success) {
+        // 로그인 후 사용자 정보 조회 (쿠키는 서버에서 자동 설정)
+        const userResponse = await apiClient.getCurrentUser();
+        if (userResponse.success && userResponse.data) {
+          setUser(userResponse.data);
         }
-    };
+      }
 
-    const logout = async () => {
-        try {
-            await apiClient.post("/auth/logout");
-        } catch (error) {
-            console.error("Logout failed:", error);
-        } finally {
-            setAccessToken(null);
-            setIsLoggedIn(false);
-            setUser(null);
-            toast.success("로그아웃되었습니다");
-        }
-    };
+      if (user) {
+        toast({
+          title: "로그인 성공",
+          description: `환영합니다, ${user.nickname}님!`,
+        });
+      }
+    } catch (error: any) {
+      const message = error.response?.data?.error?.message || error.response?.data?.message || '로그인에 실패했습니다.';
+      toast({
+        title: "로그인 실패",
+        description: message,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    useEffect(() => {
-        checkLoginStatus();
-    }, []);
+  const signup = async (email: string, password: string, nickname: string) => {
+    try {
+      setLoading(true);
+      const signupResponse = await apiClient.signup({ email, password, nickname });
+      
+      if (signupResponse.success) {
+        // 회원가입 성공 후 자동 로그인
+        await login(email, password);
+      }
+      
+      toast({
+        title: "회원가입 성공",
+        description: "밸런스 게임에 오신 것을 환영합니다!",
+      });
+    } catch (error: any) {
+      const message = error.response?.data?.error?.message || error.response?.data?.message || '회원가입에 실패했습니다.';
+      toast({
+        title: "회원가입 실패",
+        description: message,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <AuthContext.Provider
-            value={{ isLoggedIn, user, isLoading, checkLoginStatus, login, logout }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+  const logout = async () => {
+    try {
+      // 서버에 로그아웃 요청을 보내서 쿠키 무효화
+      await apiClient.logout();
+    } catch (error) {
+      console.log('Logout request failed, but proceeding with client-side logout');
+    }
+    
+    setUser(null);
+    
+    toast({
+      title: "로그아웃",
+      description: "성공적으로 로그아웃되었습니다.",
+    });
+  };
+
+  const value: AuthContextType = {
+    user,
+    loading,
+    login,
+    signup,
+    logout,
+    isAuthenticated: !!user,
+    isAdmin: user?.role === 'ADMIN',
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error("useAuth must be used within AuthProvider");
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }
