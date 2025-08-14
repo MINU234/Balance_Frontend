@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import Navigation from '@/components/navigation'
 import { PlayIcon, TrophyIcon, StarIcon, UsersIcon, ShareIcon } from 'lucide-react'
 import Link from 'next/link'
 import { QuestionBundle, ApiResponse, PaginatedResponse } from '@/types'
@@ -36,6 +37,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
+      <Navigation />
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <section className="text-center mb-16">

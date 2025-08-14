@@ -1,319 +1,131 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuLink,
-  navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import {
-  Home,
-  Search,
-  Plus,
-  User,
-  Settings,
-  LogOut,
-  Menu,
-  Crown,
-  PlayCircle,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { useAuthState } from '@/hooks/use-auth'
+import { useToast } from '@/hooks/use-toast'
+import { 
+  UserIcon, 
+  LogOutIcon, 
+  MenuIcon, 
+  XIcon,
+  HomeIcon,
+  SearchIcon,
+  PlusIcon,
+  GamepadIcon
+} from 'lucide-react'
 
-const Navigation = () => {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+export default function Navigation() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { user, logout, isAuthenticated } = useAuthState()
+  const { toast } = useToast()
+  const router = useRouter()
+  const pathname = usePathname()
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/');
-  };
+    try {
+      await logout()
+      toast.success('로그아웃되었습니다.')
+      router.push('/')
+      setIsMobileMenuOpen(false)
+    } catch (error) {
+      toast.error('로그아웃 중 오류가 발생했습니다.')
+    }
+  }
 
-  const navigationItems = [
-    {
-      title: '홈',
-      href: '/',
-      icon: Home,
-      description: '메인 페이지'
-    },
-    {
-      title: '탐색',
-      href: '/explore',
-      icon: Search,
-      description: '질문 묶음 둘러보기'
-    },
-  ];
+  const menuItems = [
+    { href: '/', label: '홈', icon: HomeIcon },
+    { href: '/explore', label: '탐색', icon: SearchIcon },
+    { href: '/create', label: '만들기', icon: PlusIcon },
+    { href: '/play', label: '게임', icon: GamepadIcon },
+  ]
 
-  const authenticatedItems = [
-    {
-      title: '질문 생성',
-      href: '/create-question',
-      icon: Plus,
-      description: '새 질문 만들기'
-    },
-    {
-      title: '묶음 생성',
-      href: '/create',
-      icon: PlayCircle,
-      description: '질문 묶음 만들기'
-    },
-    {
-      title: '마이페이지',
-      href: '/my-page',
-      icon: User,
-      description: '내 정보 및 활동'
-    },
-  ];
-
-  const adminItems = [
-    {
-      title: '관리자',
-      href: '/admin/dashboard',
-      icon: Crown,
-      description: '관리자 대시보드'
-    },
-  ];
-
-  const allItems = [
-    ...navigationItems,
-    ...(isAuthenticated === true ? authenticatedItems : []),
-    ...(isAdmin === true ? adminItems : []),
-  ];
-
-  const NavItems = ({ mobile = false, onItemClick }: { mobile?: boolean; onItemClick?: () => void }) => (
-    <>
-      {allItems.map((item) => {
-        const Icon = item.icon;
-        const isActive = pathname === item.href;
-        
-        if (mobile) {
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onItemClick}
-              className={cn(
-                "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors",
-                isActive 
-                  ? "bg-primary text-primary-foreground" 
-                  : "hover:bg-accent"
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              <div>
-                <div className="font-medium">{item.title}</div>
-                <div className="text-sm text-muted-foreground">{item.description}</div>
-              </div>
-            </Link>
-          );
-        }
-
-        return (
-          <NavigationMenuItem key={item.href}>
-            <Link href={item.href} legacyBehavior passHref>
-              <NavigationMenuLink 
-                className={cn(
-                  navigationMenuTriggerStyle(),
-                  isActive && "bg-accent text-accent-foreground"
-                )}
-              >
-                <Icon className="h-4 w-4 mr-2" />
-                {item.title}
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
-        );
-      })}
-    </>
-  );
-
-  const UserMenu = () => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-10 w-10 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>
-              {user?.nickname?.charAt(0)?.toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <div className="flex items-center justify-start gap-2 p-2">
-          <div className="flex flex-col space-y-1 leading-none">
-            <p className="font-medium">{user?.nickname}</p>
-            <p className="text-xs text-muted-foreground">{user?.email}</p>
-          </div>
-          {isAdmin && (
-            <Badge variant="secondary" className="ml-auto">
-              관리자
-            </Badge>
-          )}
-        </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/my-page" className="cursor-pointer">
-            <User className="mr-2 h-4 w-4" />
-            마이페이지
-          </Link>
-        </DropdownMenuItem>
-        {isAdmin && (
-          <DropdownMenuItem asChild>
-            <Link href="/admin/dashboard" className="cursor-pointer">
-              <Crown className="mr-2 h-4 w-4" />
-              관리자 대시보드
-            </Link>
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
-          <LogOut className="mr-2 h-4 w-4" />
-          로그아웃
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/'
+    return pathname.startsWith(href)
+  }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* 로고 */}
-        <div className="flex items-center space-x-4">
+    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <PlayCircle className="h-5 w-5 text-primary-foreground" />
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">BG</span>
             </div>
-            <span className="text-xl font-bold hidden sm:inline-block">
-              밸런스 게임
+            <span className="font-bold text-lg bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Balance Game
             </span>
           </Link>
-        </div>
 
-        {/* 데스크톱 네비게이션 */}
-        <div className="hidden md:flex items-center space-x-4">
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavItems />
-            </NavigationMenuList>
-          </NavigationMenu>
+          <div className="hidden md:flex items-center space-x-6">
+            {menuItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </Link>
+              )
+            })}
+          </div>
 
-          {/* 사용자 메뉴 */}
-          <div className="flex items-center space-x-2">
+          <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
-              <UserMenu />
+              <div className="flex items-center space-x-4">
+                <Link href="/my-page">
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                    <UserIcon className="w-4 h-4" />
+                    <span>{user?.nickname || '마이페이지'}</span>
+                  </Button>
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 text-gray-600 hover:text-red-600"
+                >
+                  <LogOutIcon className="w-4 h-4" />
+                  <span>로그아웃</span>
+                </Button>
+              </div>
             ) : (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
-                  <Link href="/login">로그인</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/signup">회원가입</Link>
-                </Button>
+              <div className="flex items-center space-x-3">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">
+                    로그인
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button variant="gradient" size="sm">
+                    회원가입
+                  </Button>
+                </Link>
               </div>
             )}
           </div>
-        </div>
 
-        {/* 모바일 메뉴 */}
-        <div className="md:hidden">
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">메뉴 열기</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-80">
-              <SheetHeader>
-                <SheetTitle className="text-left">메뉴</SheetTitle>
-              </SheetHeader>
-              <div className="py-6">
-                {/* 사용자 정보 */}
-                {isAuthenticated && user && (
-                  <div className="flex items-center space-x-3 mb-6 pb-4 border-b">
-                    <Avatar>
-                      <AvatarFallback>
-                        {user.nickname?.charAt(0)?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{user.nickname}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                      {isAdmin && (
-                        <Badge variant="secondary" className="mt-1">
-                          관리자
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* 네비게이션 아이템 */}
-                <nav className="space-y-2">
-                  <NavItems mobile onItemClick={() => setIsSheetOpen(false)} />
-                </nav>
-
-                {/* 하단 액션 */}
-                <div className="mt-6 pt-4 border-t space-y-2">
-                  {isAuthenticated ? (
-                    <Button 
-                      onClick={handleLogout} 
-                      variant="ghost" 
-                      className="w-full justify-start text-destructive hover:text-destructive"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      로그아웃
-                    </Button>
-                  ) : (
-                    <div className="space-y-2">
-                      <Button 
-                        asChild 
-                        variant="ghost" 
-                        className="w-full"
-                        onClick={() => setIsSheetOpen(false)}
-                      >
-                        <Link href="/login">로그인</Link>
-                      </Button>
-                      <Button 
-                        asChild 
-                        className="w-full"
-                        onClick={() => setIsSheetOpen(false)}
-                      >
-                        <Link href="/signup">회원가입</Link>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <XIcon className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
+            </Button>
+          </div>
         </div>
       </div>
-    </header>
-  );
-};
-
-export default Navigation;
+    </nav>
+  )
+}

@@ -9,29 +9,48 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuthState } from '@/hooks/use-auth'
 import { useToast } from '@/hooks/use-toast'
-import { EyeIcon, EyeOffIcon, ArrowLeftIcon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon, ArrowLeftIcon, UserIcon } from 'lucide-react'
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [nickname, setNickname] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuthState()
+  const { signup } = useAuthState()
   const { toast } = useToast()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!email || !password) {
-      toast.error('이메일과 비밀번호를 입력해주세요.')
+    // 유효성 검사
+    if (!email || !password || !confirmPassword || !nickname) {
+      toast.error('모든 필드를 입력해주세요.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('비밀번호가 일치하지 않습니다.')
+      return
+    }
+
+    if (password.length < 6) {
+      toast.error('비밀번호는 최소 6자 이상이어야 합니다.')
+      return
+    }
+
+    if (nickname.length < 2) {
+      toast.error('닉네임은 최소 2자 이상이어야 합니다.')
       return
     }
 
     setIsLoading(true)
     try {
-      await login(email, password)
-      toast.success('로그인에 성공했습니다!')
+      await signup(email, password, nickname)
+      toast.success('회원가입에 성공했습니다!')
       router.push('/')
     } catch (error: any) {
       toast.error(error.message)
@@ -55,19 +74,40 @@ export default function LoginPage() {
           </Button>
         </div>
 
-        {/* 로그인 카드 */}
+        {/* 회원가입 카드 */}
         <Card className="glass-card border-0 shadow-2xl">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              로그인
+              회원가입
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-300">
-              Balance Game에 오신 것을 환영합니다
+              Balance Game의 새로운 멤버가 되어주세요
             </CardDescription>
           </CardHeader>
           
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* 닉네임 입력 */}
+              <div className="space-y-2">
+                <Label htmlFor="nickname" className="text-gray-700 dark:text-gray-200">
+                  닉네임
+                </Label>
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="nickname"
+                    type="text"
+                    placeholder="사용할 닉네임을 입력하세요"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    className="bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 pl-10"
+                    disabled={isLoading}
+                    maxLength={20}
+                  />
+                </div>
+                <p className="text-xs text-gray-500">2-20자 사이로 입력해주세요</p>
+              </div>
+
               {/* 이메일 입력 */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700 dark:text-gray-200">
@@ -114,9 +154,45 @@ export default function LoginPage() {
                     )}
                   </Button>
                 </div>
+                <p className="text-xs text-gray-500">최소 6자 이상 입력해주세요</p>
               </div>
 
-              {/* 로그인 버튼 */}
+              {/* 비밀번호 확인 입력 */}
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-200">
+                  비밀번호 확인
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="비밀번호를 다시 입력하세요"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 pr-10"
+                    disabled={isLoading}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={isLoading}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOffIcon className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <EyeIcon className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </div>
+                {password && confirmPassword && password !== confirmPassword && (
+                  <p className="text-xs text-red-500">비밀번호가 일치하지 않습니다</p>
+                )}
+              </div>
+
+              {/* 회원가입 버튼 */}
               <Button
                 type="submit"
                 variant="gradient"
@@ -126,31 +202,31 @@ export default function LoginPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    로그인 중...
+                    가입 중...
                   </div>
                 ) : (
-                  '로그인'
+                  '회원가입'
                 )}
               </Button>
             </form>
 
-            {/* 회원가입 링크 */}
+            {/* 로그인 링크 */}
             <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                아직 계정이 없으신가요?{' '}
+                이미 계정이 있으신가요?{' '}
                 <Link
-                  href="/signup"
+                  href="/login"
                   className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
                 >
-                  회원가입
+                  로그인
                 </Link>
               </p>
             </div>
 
-            {/* 소셜 로그인 (향후 구현) */}
+            {/* 이용약관 동의 */}
             <div className="text-center">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                소셜 로그인은 곧 지원 예정입니다
+                회원가입 시 <span className="text-blue-600">이용약관</span> 및 <span className="text-blue-600">개인정보처리방침</span>에 동의하게 됩니다
               </p>
             </div>
           </CardContent>

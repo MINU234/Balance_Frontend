@@ -33,7 +33,9 @@
       "Bash(node_modules\\.bin\\next build:*)",
       "Bash(\"./node_modules/.bin/next\" build)",
       "Bash(npm update:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(npx @azure/static-web-apps-cli deploy:*)",
+      "WebFetch(domain:orange-mushroom-02fa24500-preview.eastasia.2.azurestaticapps.net)"
     ],
     "deny": [],
     "ask": [],
