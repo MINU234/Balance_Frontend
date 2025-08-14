@@ -99,8 +99,8 @@ const Navigation = () => {
 
   const allItems = [
     ...navigationItems,
-    ...(isAuthenticated ? authenticatedItems : []),
-    ...(isAdmin ? adminItems : []),
+    ...(isAuthenticated === true ? authenticatedItems : []),
+    ...(isAdmin === true ? adminItems : []),
   ];
 
   const NavItems = ({ mobile = false, onItemClick }: { mobile?: boolean; onItemClick?: () => void }) => (

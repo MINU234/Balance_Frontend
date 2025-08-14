@@ -16,7 +16,7 @@ export default function CreateCollectionPage() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [isPublic, setIsPublic] = useState(true)
-  const [selectedQuestions, setSelectedQuestions] = useState([])
+  const [selectedQuestions, setSelectedQuestions] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedKeyword, setSelectedKeyword] = useState("all")
 
@@ -60,14 +60,14 @@ export default function CreateCollectionPage() {
 
   const keywords = ["all", "음식", "가치관", "일상", "연애"]
 
-  const addQuestion = (question) => {
-    if (!selectedQuestions.find((q) => q.id === question.id)) {
+  const addQuestion = (question: any) => {
+    if (!selectedQuestions.find((q: any) => q.id === question.id)) {
       setSelectedQuestions([...selectedQuestions, question])
     }
   }
 
-  const removeQuestion = (questionId) => {
-    setSelectedQuestions(selectedQuestions.filter((q) => q.id !== questionId))
+  const removeQuestion = (questionId: any) => {
+    setSelectedQuestions(selectedQuestions.filter((q: any) => q.id !== questionId))
   }
 
   const moveQuestion = (index, direction) => {

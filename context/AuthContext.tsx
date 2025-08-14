@@ -26,6 +26,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        // 빌드 시점에는 인증 체크를 건너뛰기
+        if (typeof window === 'undefined') {
+          setLoading(false);
+          return;
+        }
+        
         // 쿠키에 세션이 있는지 확인 (서버에서 httpOnly 쿠키로 관리)
         console.log('🔍 Checking authentication status...');
         const response = await apiClient.getCurrentUser();

@@ -29,8 +29,8 @@ export default function CreateQuestionPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
 
-  const fileInputRefA = useRef(null)
-  const fileInputRefB = useRef(null)
+  const fileInputRefA = useRef<HTMLInputElement>(null)
+  const fileInputRefB = useRef<HTMLInputElement>(null)
 
   const popularKeywords = ["#연애", "#음식", "#가치관", "#일상", "#직장", "#여행", "#취미", "#인생", "#친구", "#가족"]
 
@@ -274,7 +274,7 @@ export default function CreateQuestionPage() {
                         size="sm"
                         variant="destructive"
                         className="absolute top-2 right-2"
-                        onClick={() => removeImage("optionA")}
+                        onClick={() => removeImage("A")}
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -293,7 +293,7 @@ export default function CreateQuestionPage() {
                     ref={fileInputRefA}
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleImageUpload(e.target.files[0], "optionA")}
+                    onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], "A")}
                     className="hidden"
                   />
                 </div>
@@ -332,7 +332,7 @@ export default function CreateQuestionPage() {
                         size="sm"
                         variant="destructive"
                         className="absolute top-2 right-2"
-                        onClick={() => removeImage("optionB")}
+                        onClick={() => removeImage("B")}
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -351,7 +351,7 @@ export default function CreateQuestionPage() {
                     ref={fileInputRefB}
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleImageUpload(e.target.files[0], "optionB")}
+                    onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], "B")}
                     className="hidden"
                   />
                 </div>

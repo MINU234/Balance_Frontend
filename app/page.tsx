@@ -36,17 +36,25 @@ export default function HomePage() {
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
+        // 빌드 시에는 API 호출을 건너뛰기
+        if (process.env.SKIP_BUILD_STATIC_GENERATION === 'true') {
+            setLoading(false);
+            return;
+        }
         loadPopularBundles();
     }, []);
 
     const loadPopularBundles = async () => {
         try {
             const response = await apiClient.getPopularBundles(0, 6);
-            if (response.success && response.data) {
+            if (response.success && response.data && response.data.content) {
                 setPopularBundles(response.data.content);
+            } else {
+                setPopularBundles([]);
             }
         } catch (error) {
             console.error('인기 게임 로드 실패:', error);
+            setPopularBundles([]);
         } finally {
             setLoading(false);
         }

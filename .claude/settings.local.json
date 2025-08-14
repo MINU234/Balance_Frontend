@@ -18,7 +18,12 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(rm:*)",
-      "WebFetch(domain:orange-mushroom-02fa24500.2.azurestaticapps.net)"
+      "WebFetch(domain:orange-mushroom-02fa24500.2.azurestaticapps.net)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" staticwebapp show --name \"Balance-Front\" --resource-group \"MINWOO\" --query \"{name: name, defaultHostname: defaultHostname, repositoryUrl: repositoryUrl, branch: branch}\" -o table)",
+      "Bash(mkdir:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(mv:*)",
+      "Bash(SKIP_BUILD_STATIC_GENERATION=true npm run build)"
     ],
     "deny": [],
     "ask": [],
