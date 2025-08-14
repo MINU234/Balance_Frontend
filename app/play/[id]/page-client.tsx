@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -11,10 +11,8 @@ import {
   Clock, 
   Users, 
   ArrowLeft, 
-  ArrowRight, 
   CheckCircle2, 
   Share2,
-  Copy,
   Trophy,
   Sparkles
 } from "lucide-react"
@@ -23,12 +21,15 @@ import apiClient from "@/lib/simpleApiClient"
 import { toast } from "@/hooks/use-toast"
 import confetti from 'canvas-confetti'
 
-export default function GamePlayPage() {
-  const params = useParams()
+interface Props {
+  params: { id: string }
+}
+
+export default function PlayPageClient({ params }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  const bundleId = params.id as string
+  const bundleId = params.id
   const selectedQuestionIds = searchParams.get('questions')?.split(',').map(Number) || []
   
   const [session, setSession] = useState<GameSession | null>(null)
@@ -53,7 +54,6 @@ export default function GamePlayPage() {
     if (timerActive && timeLeft > 0 && !gameCompleted) {
       timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
     } else if (timeLeft === 0 && !gameCompleted) {
-      // 시간 초과 시 자동으로 A 선택
       handleAnswer('A')
     }
     return () => clearTimeout(timer)
@@ -111,14 +111,12 @@ export default function GamePlayPage() {
       if (response.success && response.data) {
         setSession(response.data)
         
-        // 다음 질문으로 이동
         if (currentQuestionIndex < session.questions.length - 1) {
           const nextIndex = currentQuestionIndex + 1
           setCurrentQuestionIndex(nextIndex)
           setCurrentQuestion(session.questions[nextIndex])
           setTimeLeft(30)
         } else {
-          // 게임 완료
           await completeGame()
         }
       }
@@ -145,7 +143,6 @@ export default function GamePlayPage() {
         setGameResult(response.data)
         setGameCompleted(true)
         
-        // 축하 효과
         confetti({
           particleCount: 100,
           spread: 70,
@@ -191,7 +188,6 @@ export default function GamePlayPage() {
             <Skeleton className="h-8 w-48 mb-4" />
             <Skeleton className="h-4 w-full" />
           </div>
-          
           <Card className="mb-6">
             <CardHeader>
               <Skeleton className="h-6 w-3/4" />
@@ -299,7 +295,6 @@ export default function GamePlayPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
       <div className="max-w-4xl mx-auto">
-        {/* 헤더 */}
         <div className="flex items-center justify-between mb-6">
           <Button
             onClick={() => router.back()}
@@ -323,7 +318,6 @@ export default function GamePlayPage() {
           </div>
         </div>
 
-        {/* 진행률 */}
         <div className="mb-6">
           <div className="flex justify-between text-sm text-gray-600 mb-2">
             <span>진행률</span>
@@ -332,7 +326,6 @@ export default function GamePlayPage() {
           <Progress value={getProgressPercentage()} className="h-2" />
         </div>
 
-        {/* 질문 카드 */}
         <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl mb-6">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-center text-gray-900">
@@ -347,7 +340,6 @@ export default function GamePlayPage() {
           
           <CardContent>
             <div className="grid md:grid-cols-2 gap-6">
-              {/* 선택지 A */}
               <Button
                 onClick={() => handleAnswer('A')}
                 disabled={submitting}
@@ -368,7 +360,6 @@ export default function GamePlayPage() {
                 </div>
               </Button>
 
-              {/* 선택지 B */}
               <Button
                 onClick={() => handleAnswer('B')}
                 disabled={submitting}
@@ -392,7 +383,6 @@ export default function GamePlayPage() {
           </CardContent>
         </Card>
 
-        {/* 힌트 또는 추가 정보 */}
         {currentQuestion.keywords && (
           <Card className="bg-white/50 backdrop-blur-sm border-0">
             <CardContent className="pt-4">
