@@ -23,7 +23,16 @@
       "Bash(mkdir:*)",
       "Bash(npx shadcn@latest add:*)",
       "Bash(mv:*)",
-      "Bash(SKIP_BUILD_STATIC_GENERATION=true npm run build)"
+      "Bash(SKIP_BUILD_STATIC_GENERATION=true npm run build)",
+      "Bash(gh run list:*)",
+      "Bash(curl:*)",
+      "Bash(npm install)",
+      "Bash(npm cache clean:*)",
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(node_modules\\.bin\\next build:*)",
+      "Bash(\"./node_modules/.bin/next\" build)",
+      "Bash(npm update:*)"
     ],
     "deny": [],
     "ask": [],

@@ -10,10 +10,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // 빌드 시 외부 API 호출 방지
-  env: {
-    SKIP_BUILD_STATIC_GENERATION: 'true',
-  },
   
   images: {
     unoptimized: true, // Static export를 위해 필요
