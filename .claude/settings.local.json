@@ -14,7 +14,11 @@
       "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" account show)",
       "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" group list --query \"[].name\" -o table)",
       "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" staticwebapp create --name \"balance-game-frontend\" --resource-group \"MINWOO\" --location \"koreacentral\" --source \"https://github.com/YOUR_USERNAME/balance-game-frontend\" --branch \"main\" --app-location \"/\" --output-location \"out\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(rm:*)",
+      "WebFetch(domain:orange-mushroom-02fa24500.2.azurestaticapps.net)"
     ],
     "deny": [],
     "ask": [],
