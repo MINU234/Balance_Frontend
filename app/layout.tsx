@@ -1,56 +1,32 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/context/AuthContext";
-import { Toaster } from "@/components/ui/toaster";
-import Navigation from "@/components/Navigation";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "밸런스 게임 - 선택의 재미",
-  description: "친구들과 함께 즐기는 밸런스 게임! 당신의 선택을 공유하고 비교해보세요.",
-  keywords: ["밸런스게임", "선택게임", "친구", "비교", "재미"],
-  authors: [{ name: "Balance Game Team" }],
+  title: 'Balance Game - 밸런스 게임',
+  description: '다양한 주제의 밸런스 게임을 플레이하고 친구들과 결과를 비교해보세요!',
+  keywords: ['밸런스게임', 'balance game', '선택게임', '게임', 'game'],
   openGraph: {
-    title: "밸런스 게임 - 선택의 재미",
-    description: "친구들과 함께 즐기는 밸런스 게임! 당신의 선택을 공유하고 비교해보세요.",
-    type: "website",
-    locale: "ko_KR",
+    title: 'Balance Game - 밸런스 게임',
+    description: '다양한 주제의 밸런스 게임을 플레이하고 친구들과 결과를 비교해보세요!',
+    type: 'website',
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "밸런스 게임 - 선택의 재미",
-    description: "친구들과 함께 즐기는 밸런스 게임! 당신의 선택을 공유하고 비교해보세요.",
-  },
-};
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko">
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>
-            <div className="min-h-screen bg-background">
-              <Navigation />
-              <main>
-                {children}
-              </main>
-              <Toaster />
-            </div>
-          </AuthProvider>
-        </ThemeProvider>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+          {children}
+        </div>
       </body>
     </html>
-  );
+  )
 }

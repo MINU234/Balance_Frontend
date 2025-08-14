@@ -32,7 +32,8 @@
       "Bash(npx next:*)",
       "Bash(node_modules\\.bin\\next build:*)",
       "Bash(\"./node_modules/.bin/next\" build)",
-      "Bash(npm update:*)"
+      "Bash(npm update:*)",
+      "Bash(touch:*)"
     ],
     "deny": [],
     "ask": [],
