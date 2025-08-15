@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button'
 import Navigation from '@/components/navigation'
 import { PlayIcon, TrophyIcon, StarIcon, UsersIcon, ShareIcon } from 'lucide-react'
 import Link from 'next/link'
-import { QuestionBundle, ApiResponse, PaginatedResponse } from '@/types'
-import apiClient from '@/lib/api-client'
+import { QuestionBundle } from '@/types'
+import { questionsApi } from '@/lib/api/questions'
+import DebugPanel from '@/components/debug-panel'
 
 export default function HomePage() {
   const [popularBundles, setPopularBundles] = useState<QuestionBundle[]>([])
@@ -21,12 +22,18 @@ export default function HomePage() {
       }
 
       try {
-        const response = await apiClient.get<ApiResponse<PaginatedResponse<QuestionBundle>>>(
-          '/api/question-bundles/popular?page=0&size=6'
-        )
-        setPopularBundles(response.data.data.content)
+        const response = await questionsApi.getPopularBundles(0, 6)
+        if (response.success) {
+          setPopularBundles(response.data.content)
+        } else {
+          // API가 실패해도 UI는 정상 표시
+          console.warn('서버에서 데이터를 가져오지 못했습니다. 빈 목록을 표시합니다.')
+          setPopularBundles([])
+        }
       } catch (error) {
         console.error('인기 묶음을 불러오는데 실패했습니다:', error)
+        // 에러가 발생해도 빈 배열로 설정하여 UI가 깨지지 않도록 함
+        setPopularBundles([])
       } finally {
         setLoading(false)
       }
@@ -134,6 +141,21 @@ export default function HomePage() {
                 </Card>
               ))}
             </div>
+          ) : popularBundles.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">🎮</span>
+                </div>
+                <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
+                  게임을 준비하고 있어요
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  서버에서 게임 데이터를 가져오는 중입니다.<br />
+                  잠시 후 다시 확인해주세요.
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {popularBundles.map((bundle) => (
@@ -161,7 +183,7 @@ export default function HomePage() {
                         {bundle.createdBy.nickname}
                       </span>
                     </div>
-                    <Link href="/play">
+                    <Link href={`/game?id=${bundle.id}`}>
                       <Button className="w-full group-hover:bg-gradient-to-r group-hover:from-blue-500 group-hover:to-purple-600 transition-all duration-300">
                         <PlayIcon className="w-4 h-4 mr-2" />
                         플레이하기
@@ -172,6 +194,11 @@ export default function HomePage() {
               ))}
             </div>
           )}
+        </section>
+
+        {/* 디버그 패널 (개발용) */}
+        <section className="mt-16">
+          <DebugPanel />
         </section>
       </div>
     </div>

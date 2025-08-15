@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, createContext, useContext } from 'react'
-import apiClient from '@/lib/api-client'
-import { User, ApiResponse } from '@/types'
+import { authApi } from '@/lib/api/auth'
+import { User } from '@/types'
 
 interface AuthContextType {
   user: User | null
@@ -13,7 +13,7 @@ interface AuthContextType {
   isAuthenticated: boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+import { AuthContext } from '@/providers/auth-provider'
 
 export function useAuth() {
   const context = useContext(AuthContext)
@@ -33,8 +33,12 @@ export function useAuthState() {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await apiClient.get<ApiResponse<User>>('/api/auth/me')
-      setUser(response.data.data)
+      const response = await authApi.me()
+      if (response.success) {
+        setUser(response.data)
+      } else {
+        setUser(null)
+      }
     } catch (error) {
       setUser(null)
     } finally {
@@ -45,41 +49,54 @@ export function useAuthState() {
   const login = async (email: string, password: string) => {
     setLoading(true)
     try {
-      const response = await apiClient.post<ApiResponse<string>>('/api/auth/login', {
-        email,
-        password
-      })
+      const response = await authApi.login({ email, password })
       
-      // 로그인 성공 후 사용자 정보 다시 가져오기
-      await checkAuthStatus()
-      return response.data
+      if (response.success) {
+        // 로그인 성공 후 사용자 정보 다시 가져오기
+        await checkAuthStatus()
+      } else {
+        setLoading(false)
+        throw new Error('로그인에 실패했습니다.')
+      }
     } catch (error: any) {
       setLoading(false)
-      throw new Error(error.response?.data?.error?.message || '로그인에 실패했습니다.')
+      if (error.response?.data?.error?.message) {
+        throw new Error(error.response.data.error.message)
+      } else if (error.response?.data?.message) {
+        throw new Error(error.response.data.message)
+      } else {
+        throw new Error(error.message || '로그인에 실패했습니다.')
+      }
     }
   }
 
   const signup = async (email: string, password: string, nickname: string) => {
     setLoading(true)
     try {
-      const response = await apiClient.post<ApiResponse<string>>('/api/auth/signup', {
-        email,
-        password,
-        nickname
-      })
+      const response = await authApi.signup({ email, password, nickname })
       
-      // 회원가입 성공 후 자동 로그인
-      await login(email, password)
-      return response.data
+      if (response.success) {
+        // 회원가입 성공 후 자동 로그인
+        await login(email, password)
+      } else {
+        setLoading(false)
+        throw new Error('회원가입에 실패했습니다.')
+      }
     } catch (error: any) {
       setLoading(false)
-      throw new Error(error.response?.data?.error?.message || '회원가입에 실패했습니다.')
+      if (error.response?.data?.error?.message) {
+        throw new Error(error.response.data.error.message)
+      } else if (error.response?.data?.message) {
+        throw new Error(error.response.data.message)
+      } else {
+        throw new Error(error.message || '회원가입에 실패했습니다.')
+      }
     }
   }
 
   const logout = async () => {
     try {
-      await apiClient.post('/api/auth/logout')
+      await authApi.logout()
     } catch (error) {
       console.error('로그아웃 중 오류:', error)
     } finally {

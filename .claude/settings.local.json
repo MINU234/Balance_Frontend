@@ -35,7 +35,12 @@
       "Bash(npm update:*)",
       "Bash(touch:*)",
       "Bash(npx @azure/static-web-apps-cli deploy:*)",
-      "WebFetch(domain:orange-mushroom-02fa24500-preview.eastasia.2.azurestaticapps.net)"
+      "WebFetch(domain:orange-mushroom-02fa24500-preview.eastasia.2.azurestaticapps.net)",
+      "WebFetch(domain:balance-game-ekedbfhkcxeyc8cb.koreacentral-01.azurewebsites.net)",
+      "WebFetch(domain:portal.azure.com)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" webapp log tail --name \"balance-game-ekedbfhkcxeyc8cb\" --resource-group \"MINWOO\" --slot production)",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" webapp log tail --name \"balance-game-ekedbfhkcxeyc8cb\" --resource-group \"MINWOO\")",
+      "Bash(\"C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd\" webapp list --resource-group \"balance-game-student-rg\" --query \"[].{name:name, defaultHostName:defaultHostName}\" -o table)"
     ],
     "deny": [],
     "ask": [],

@@ -18,6 +18,10 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons']
+  },
+  // Azure Static Web Apps 호환을 위한 설정
+  generateBuildId: async () => {
+    return 'build'
   }
 };
 
