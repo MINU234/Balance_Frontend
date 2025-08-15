@@ -17,7 +17,11 @@ export const authApi = {
   login: async (data: LoginRequest): Promise<ApiResponse<string>> => {
     try {
       const response = await apiClient.post('/api/auth/login', data)
-      return response.data
+      // 서버에서 200 응답이 오면 성공으로 처리
+      if (response.status === 200) {
+        return { success: true, data: response.data };
+      }
+      return { success: false, data: null as any };
     } catch (error: any) {
       console.error('Login failed:', error);
       if (error.response?.status === 500) {
@@ -31,7 +35,11 @@ export const authApi = {
   signup: async (data: SignupRequest): Promise<ApiResponse<string>> => {
     try {
       const response = await apiClient.post('/api/auth/signup', data)
-      return response.data
+      // 서버에서 200 응답이 오면 성공으로 처리
+      if (response.status === 200) {
+        return { success: true, data: response.data };
+      }
+      return { success: false, data: null as any };
     } catch (error: any) {
       console.error('Signup failed:', error);
       if (error.response?.status === 500) {
