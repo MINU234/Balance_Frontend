@@ -59,19 +59,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const loginResponse = await authApi.login({ email, password });
       
       if (loginResponse.success) {
+        console.log('✅ Login API successful, fetching user info...');
+        
         // 로그인 후 사용자 정보 조회 (쿠키는 서버에서 자동 설정)
-        const userResponse = await authApi.me();
-        if (userResponse.success && userResponse.data) {
-          setUser(userResponse.data);
+        try {
+          const userResponse = await authApi.me();
+          if (userResponse.success && userResponse.data) {
+            setUser(userResponse.data);
+            toast(`환영합니다, ${userResponse.data.nickname}님!`);
+          } else {
+            // /me API 실패해도 로그인은 성공으로 처리
+            console.warn('⚠️ User info fetch failed, but login was successful');
+            toast('로그인되었습니다!');
+          }
+        } catch (meError) {
+          console.warn('⚠️ /me API failed:', meError);
+          toast('로그인되었습니다!');
         }
-      }
-
-      if (user) {
-        toast.success(`환영합니다, ${user.nickname}님!`);
+      } else {
+        throw new Error('로그인에 실패했습니다.');
       }
     } catch (error: any) {
-      const message = error.response?.data?.error?.message || error.response?.data?.message || '로그인에 실패했습니다.';
-      toast.error(message);
+      console.error('❌ Login failed:', error);
+      const message = error.message || error.response?.data?.error?.message || error.response?.data?.message || '로그인에 실패했습니다.';
+      toast(message);
       throw error;
     } finally {
       setLoading(false);
