@@ -7,8 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuthState } from '@/hooks/use-auth'
-import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/use-auth'
+import { toast } from 'sonner'
 import { EyeIcon, EyeOffIcon, ArrowLeftIcon } from 'lucide-react'
 
 export default function LoginPage() {
@@ -16,25 +16,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuthState()
-  const { toast } = useToast()
+  const { login } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!email || !password) {
-      toast.error('이메일과 비밀번호를 입력해주세요.')
+      toast('이메일과 비밀번호를 입력해주세요.')
       return
     }
 
     setIsLoading(true)
     try {
       await login(email, password)
-      toast.success('로그인에 성공했습니다!')
+      // 로그인 성공 시 AuthContext에서 toast와 리다이렉션을 처리
       router.push('/')
     } catch (error: any) {
-      toast.error(error.message)
+      // 에러는 AuthContext에서 처리됨
     } finally {
       setIsLoading(false)
     }

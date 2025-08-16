@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from '@/types';
 import { authApi } from '@/lib/api/auth';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -20,7 +20,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   // 로그인 상태 확인 (쿠키 기반)
   useEffect(() => {
@@ -99,10 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await login(email, password);
       }
       
-      toast.success("밸런스 게임에 오신 것을 환영합니다!");
+      toast("밸런스 게임에 오신 것을 환영합니다!");
     } catch (error: any) {
       const message = error.response?.data?.error?.message || error.response?.data?.message || '회원가입에 실패했습니다.';
-      toast.error(message);
+      toast(message);
       throw error;
     } finally {
       setLoading(false);
@@ -119,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     setUser(null);
     
-    toast.success("성공적으로 로그아웃되었습니다.");
+    toast("성공적으로 로그아웃되었습니다.");
   };
 
   const value: AuthContextType = {
