@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import Navigation from '@/components/navigation'
+import Navigation from '@/components/navigation.tsx'
 import { PlayIcon, TrophyIcon, StarIcon, UsersIcon, ShareIcon } from 'lucide-react'
 import Link from 'next/link'
 import { QuestionBundle } from '@/types'
