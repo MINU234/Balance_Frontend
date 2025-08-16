@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import Navigation from '@/components/navigation.tsx'
+import Navigation from '@/components/navigation'
 import { CalendarIcon, GamepadIcon, TrophyIcon, UsersIcon, StarIcon, PlayIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
