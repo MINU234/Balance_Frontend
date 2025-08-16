@@ -55,10 +55,10 @@ export const authApi = {
       const response = await apiClient.get('/api/auth/me')
       return response.data
     } catch (error: any) {
-      // 500 에러의 경우 서버 측 인증 확인 문제로 로그아웃 상태로 처리
-      if (error.response?.status === 500) {
-        // 500 에러는 로그를 줄이고 조용히 처리
-        console.debug('Auth check: User not authenticated (server returned 500)');
+      // 401/500 에러의 경우 인증되지 않은 상태로 처리
+      if (error.response?.status === 401 || error.response?.status === 500) {
+        // 인증 에러는 로그를 줄이고 조용히 처리
+        console.debug('Auth check: User not authenticated (server returned ' + error.response?.status + ')');
         return { success: false, data: null as any };
       }
       console.error('User info fetch failed:', error);
