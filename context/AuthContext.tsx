@@ -67,18 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (user) {
-        toast({
-          title: "로그인 성공",
-          description: `환영합니다, ${user.nickname}님!`,
-        });
+        toast.success(`환영합니다, ${user.nickname}님!`);
       }
     } catch (error: any) {
       const message = error.response?.data?.error?.message || error.response?.data?.message || '로그인에 실패했습니다.';
-      toast({
-        title: "로그인 실패",
-        description: message,
-        variant: "destructive",
-      });
+      toast.error(message);
       throw error;
     } finally {
       setLoading(false);
@@ -95,17 +88,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await login(email, password);
       }
       
-      toast({
-        title: "회원가입 성공",
-        description: "밸런스 게임에 오신 것을 환영합니다!",
-      });
+      toast.success("밸런스 게임에 오신 것을 환영합니다!");
     } catch (error: any) {
       const message = error.response?.data?.error?.message || error.response?.data?.message || '회원가입에 실패했습니다.';
-      toast({
-        title: "회원가입 실패",
-        description: message,
-        variant: "destructive",
-      });
+      toast.error(message);
       throw error;
     } finally {
       setLoading(false);
@@ -122,10 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     setUser(null);
     
-    toast({
-      title: "로그아웃",
-      description: "성공적으로 로그아웃되었습니다.",
-    });
+    toast.success("성공적으로 로그아웃되었습니다.");
   };
 
   const value: AuthContextType = {
