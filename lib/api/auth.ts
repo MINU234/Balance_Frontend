@@ -53,9 +53,20 @@ export const authApi = {
       return { success: false, data: null as any };
     } catch (error: any) {
       console.error('Signup failed:', error);
-      if (error.response?.status === 500) {
-        throw new Error('이미 가입된 이메일이거나 서버에 문제가 있습니다. 다른 이메일로 시도해주세요.');
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      if (error.response?.status === 400) {
+        // 400 에러는 백엔드에서 보낸 구체적인 에러 메시지 사용
+        const errorMessage = error.response?.data?.message || '입력 정보를 확인해주세요.';
+        throw new Error(errorMessage);
+      } else if (error.response?.status === 500) {
+        throw new Error('서버에 문제가 있습니다. 잠시 후 다시 시도해주세요.');
       }
+      
       throw new Error(error.userMessage || '회원가입에 실패했습니다. 다시 시도해주세요.');
     }
   },

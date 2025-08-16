@@ -7,8 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuthState } from '@/hooks/use-auth'
-import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/use-auth'
+import { toast } from 'sonner'
 import { EyeIcon, EyeOffIcon, ArrowLeftIcon, UserIcon } from 'lucide-react'
 
 export default function SignupPage() {
@@ -19,8 +19,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { signup } = useAuthState()
-  const { toast } = useToast()
+  const { signup } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,32 +27,32 @@ export default function SignupPage() {
     
     // 유효성 검사
     if (!email || !password || !confirmPassword || !nickname) {
-      toast.error('모든 필드를 입력해주세요.')
+      toast('모든 필드를 입력해주세요.')
       return
     }
 
     if (password !== confirmPassword) {
-      toast.error('비밀번호가 일치하지 않습니다.')
+      toast('비밀번호가 일치하지 않습니다.')
       return
     }
 
     if (password.length < 6) {
-      toast.error('비밀번호는 최소 6자 이상이어야 합니다.')
+      toast('비밀번호는 최소 6자 이상이어야 합니다.')
       return
     }
 
     if (nickname.length < 2) {
-      toast.error('닉네임은 최소 2자 이상이어야 합니다.')
+      toast('닉네임은 최소 2자 이상이어야 합니다.')
       return
     }
 
     setIsLoading(true)
     try {
       await signup(email, password, nickname)
-      toast.success('회원가입에 성공했습니다!')
+      toast('회원가입에 성공했습니다!')
       router.push('/')
     } catch (error: any) {
-      toast.error(error.message)
+      toast(error.message || '회원가입에 실패했습니다.')
     } finally {
       setIsLoading(false)
     }
