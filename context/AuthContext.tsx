@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from '@/types/api';
-import apiClient from '@/lib/apiClient';
+import { authApi } from '@/lib/api/auth';
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
@@ -34,13 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // 쿠키에 세션이 있는지 확인 (서버에서 httpOnly 쿠키로 관리)
         console.log('🔍 Checking authentication status...');
-        const response = await apiClient.getCurrentUser();
+        const response = await authApi.me();
         if (response.success && response.data) {
           setUser(response.data);
         } else {
           setUser(null);
         }
-        console.log('✅ User authenticated:', userData);
+        console.log('✅ User authenticated:', response.data);
       } catch (error: any) {
         console.log('ℹ️ User not authenticated or session expired');
         // 인증되지 않은 상태는 정상적인 상황
@@ -56,11 +56,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const loginResponse = await apiClient.login({ email, password });
+      const loginResponse = await authApi.login({ email, password });
       
       if (loginResponse.success) {
         // 로그인 후 사용자 정보 조회 (쿠키는 서버에서 자동 설정)
-        const userResponse = await apiClient.getCurrentUser();
+        const userResponse = await authApi.me();
         if (userResponse.success && userResponse.data) {
           setUser(userResponse.data);
         }
@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (email: string, password: string, nickname: string) => {
     try {
       setLoading(true);
-      const signupResponse = await apiClient.signup({ email, password, nickname });
+      const signupResponse = await authApi.signup({ email, password, nickname });
       
       if (signupResponse.success) {
         // 회원가입 성공 후 자동 로그인
@@ -115,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       // 서버에 로그아웃 요청을 보내서 쿠키 무효화
-      await apiClient.logout();
+      await authApi.logout();
     } catch (error) {
       console.log('Logout request failed, but proceeding with client-side logout');
     }
