@@ -17,16 +17,27 @@ export const authApi = {
   login: async (data: LoginRequest): Promise<ApiResponse<string>> => {
     try {
       const response = await apiClient.post('/api/auth/login', data)
-      // 서버에서 200 응답이 오면 성공으로 처리
+      // 서버에서 200 응답이 오면 성공으로 처리 (백엔드가 단순 문자열 반환)
       if (response.status === 200) {
-        return { success: true, data: response.data };
+        return { success: true, data: response.data || 'Login successful' };
       }
       return { success: false, data: null as any };
     } catch (error: any) {
       console.error('Login failed:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
       if (error.response?.status === 500) {
         throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
+      } else if (error.response?.status === 401) {
+        throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
+      } else if (error.response?.status === 404) {
+        throw new Error('로그인 서비스에 연결할 수 없습니다.');
       }
+      
       throw new Error(error.userMessage || '로그인에 실패했습니다. 다시 시도해주세요.');
     }
   },
