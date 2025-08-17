@@ -24,9 +24,9 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // /api/auth/me 엔드포인트의 500 에러는 인증 체크용이므로 로그 레벨을 낮춤
-    if (error.config?.url?.includes('/api/auth/me') && error.response?.status === 500) {
-      console.debug('Auth check failed (expected for non-authenticated users):', {
+    // /api/auth/me 엔드포인트의 401/500 에러는 인증 체크용이므로 로그 레벨을 낮춤
+    if (error.config?.url?.includes('/api/auth/me') && (error.response?.status === 401 || error.response?.status === 500)) {
+      console.debug('Auth check failed (예상된 상황 - 비로그인 사용자):', {
         url: error.config?.url,
         status: error.response?.status,
         timestamp: new Date().toISOString()
@@ -48,8 +48,8 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      // 인증이 필요한 API에서만 리다이렉트 (메인페이지, 탐색페이지 등 공개 페이지는 제외)
-      const requiresAuth = ['/api/auth/me', '/api/my-page', '/api/admin', '/api/questions/create', '/api/question-bundles/create'].some(path => 
+      // 인증이 필요한 특정 API에서만 리다이렉트 (/api/auth/me는 제외 - 인증 상태 체크용)
+      const requiresAuth = ['/api/my-page', '/api/admin', '/api/questions/create', '/api/question-bundles/create'].some(path => 
         error.config?.url?.includes(path)
       );
       
@@ -57,7 +57,7 @@ apiClient.interceptors.response.use(
         console.warn('인증이 필요한 API 호출 실패, 로그인 페이지로 이동:', error.config?.url);
         window.location.href = '/login';
       } else {
-        console.debug('공개 API에서 401 에러 발생 (무시):', error.config?.url);
+        console.debug('인증 체크 또는 공개 API에서 401 에러 발생 (정상):', error.config?.url);
       }
     } else if (error.response?.status >= 500) {
       // 서버 에러의 경우 사용자 친화적 메시지로 변환
