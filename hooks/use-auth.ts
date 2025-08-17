@@ -39,7 +39,11 @@ export function useAuthState() {
       } else {
         setUser(null)
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.debug('Auth check failed (인증되지 않은 사용자):', {
+        status: error.response?.status,
+        url: error.config?.url
+      })
       setUser(null)
     } finally {
       setLoading(false)
@@ -52,8 +56,19 @@ export function useAuthState() {
       const response = await authApi.login({ email, password })
       
       if (response.success) {
-        // 로그인 성공 후 사용자 정보 다시 가져오기
-        await checkAuthStatus()
+        // 로그인 성공 시 사용자 정보 직접 설정 (API 재호출 방지)
+        if (response.data?.user) {
+          setUser(response.data.user)
+        } else {
+          // 사용자 정보가 없는 경우에만 안전하게 체크
+          try {
+            await checkAuthStatus()
+          } catch (checkError) {
+            console.warn('로그인 후 사용자 정보 확인 실패, 무시함:', checkError)
+            // 체크 실패해도 로그인은 성공으로 처리
+          }
+        }
+        setLoading(false)
       } else {
         setLoading(false)
         throw new Error('로그인에 실패했습니다.')

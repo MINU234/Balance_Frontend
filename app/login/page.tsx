@@ -23,17 +23,19 @@ export default function LoginPage() {
     e.preventDefault()
     
     if (!email || !password) {
-      toast('이메일과 비밀번호를 입력해주세요.')
+      toast.error('이메일과 비밀번호를 입력해주세요.')
       return
     }
 
     setIsLoading(true)
     try {
       await login(email, password)
-      // 로그인 성공 시 AuthContext에서 toast와 리다이렉션을 처리
+      toast.success('로그인 성공!')
+      // 로그인 성공 시 메인 페이지로 리다이렉트
       router.push('/')
     } catch (error: any) {
-      // 에러는 AuthContext에서 처리됨
+      console.error('로그인 에러:', error)
+      toast.error(error.message || '로그인에 실패했습니다.')
     } finally {
       setIsLoading(false)
     }
