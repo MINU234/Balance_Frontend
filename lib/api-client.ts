@@ -48,9 +48,16 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      // 토큰 만료 시 로그인 페이지로 리다이렉트
-      if (typeof window !== 'undefined') {
+      // 인증이 필요한 API에서만 리다이렉트 (메인페이지, 탐색페이지 등 공개 페이지는 제외)
+      const requiresAuth = ['/api/auth/me', '/api/my-page', '/api/admin', '/api/questions/create', '/api/question-bundles/create'].some(path => 
+        error.config?.url?.includes(path)
+      );
+      
+      if (requiresAuth && typeof window !== 'undefined') {
+        console.warn('인증이 필요한 API 호출 실패, 로그인 페이지로 이동:', error.config?.url);
         window.location.href = '/login';
+      } else {
+        console.debug('공개 API에서 401 에러 발생 (무시):', error.config?.url);
       }
     } else if (error.response?.status >= 500) {
       // 서버 에러의 경우 사용자 친화적 메시지로 변환
